@@ -1,0 +1,221 @@
+services:
+    laravel.interface:
+        build:
+            context: ./interface-service/vendor/laravel/sail/runtimes/8.3
+            dockerfile: Dockerfile
+            args:
+                WWWGROUP: 'sail'
+        image: sail-8.3/app
+        extra_hosts:
+            - 'host.docker.internal:host-gateway'
+        ports:
+            - '8001:80'
+            - '5173:5173'
+        environment:
+            WWWUSER: 'sail'
+            LARAVEL_SAIL: 1
+            XDEBUG_MODE: 'off'
+            XDEBUG_CONFIG: 'client_host=host.docker.internal'
+            IGNITION_LOCAL_SITES_PATH: '/var/www/html'
+        volumes:
+            - './interface-service:/var/www/html'
+        networks:
+            - interface
+            - alegra-services
+        depends_on:
+            - mysql_interface
+    laravel.order-manager:
+        build:
+            context: ./order-manager-service/vendor/laravel/sail/runtimes/8.3
+            dockerfile: Dockerfile
+            args:
+                WWWGROUP: 'sail'
+        image: sail-8.3/app
+        extra_hosts:
+            - 'host.docker.internal:host-gateway'
+        ports:
+            - '8002:80'
+            - '5174:5173'
+        environment:
+            WWWUSER: 'sail'
+            LARAVEL_SAIL: 1
+            XDEBUG_MODE: 'off'
+            XDEBUG_CONFIG: 'client_host=host.docker.internal'
+            IGNITION_LOCAL_SITES_PATH: '/var/www/html'
+        volumes:
+            - './order-management-service:/var/www/html'
+        networks:
+            - order-manager
+            - alegra-services
+        depends_on:
+            - mysql_order_manager
+    laravel.kitchen:
+        build:
+            context: ./kitchen-service/vendor/laravel/sail/runtimes/8.3
+            dockerfile: Dockerfile
+            args:
+                WWWGROUP: 'sail'
+        image: sail-8.3/app
+        extra_hosts:
+            - 'host.docker.internal:host-gateway'
+        ports:
+            - '8003:80'
+            - '5175:5173'
+        environment:
+            WWWUSER: 'sail'
+            LARAVEL_SAIL: 1
+            XDEBUG_MODE: 'off'
+            XDEBUG_CONFIG: 'client_host=host.docker.internal'
+            IGNITION_LOCAL_SITES_PATH: '/var/www/html'
+        volumes:
+            - './kitchen-service:/var/www/html'
+        networks:
+            - kitchen
+            - alegra-services
+        depends_on:
+            - mysql_kitchen
+    laravel.store:
+        build:
+            context: ./store-service/vendor/laravel/sail/runtimes/8.3
+            dockerfile: Dockerfile
+            args:
+                WWWGROUP: 'sail'
+        image: sail-8.3/app
+        extra_hosts:
+            - 'host.docker.internal:host-gateway'
+        ports:
+            - '8004:80'
+            - '5176:5173'
+        environment:
+            WWWUSER: 'sail'
+            LARAVEL_SAIL: 1
+            XDEBUG_MODE: 'off'
+            XDEBUG_CONFIG: 'client_host=host.docker.internal'
+            IGNITION_LOCAL_SITES_PATH: '/var/www/html'
+        volumes:
+            - './store-service:/var/www/html'
+        networks:
+            - store
+            - alegra-services
+        depends_on:
+            - mysql_store
+    mysql_interface:
+        image: 'mysql/mysql-server:8.0'
+        ports:
+            - '3306:3306'
+        environment:
+            MYSQL_ROOT_PASSWORD: 'password'
+            MYSQL_ROOT_HOST: '%'
+            MYSQL_DATABASE: 'laravel'
+            MYSQL_USER: 'sail'
+            MYSQL_PASSWORD: 'password'
+            MYSQL_ALLOW_EMPTY_PASSWORD: 1
+        volumes:
+            - 'mysql-interface-data:/var/lib/mysql'
+            - './vendor/laravel/sail/database/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
+        command: '--socket=/tmp/mysql.sock'
+        networks:
+            - interface
+        healthcheck:
+            test:
+                - CMD
+                - mysqladmin
+                - ping
+                - '-ppassword'
+            retries: 3
+            timeout: 5s
+    mysql_order_manager:
+        image: 'mysql/mysql-server:8.0'
+        ports:
+            - '3307:3306'
+        environment:
+            MYSQL_ROOT_PASSWORD: 'password'
+            MYSQL_ROOT_HOST: '%'
+            MYSQL_DATABASE: 'laravel'
+            MYSQL_USER: 'sail'
+            MYSQL_PASSWORD: 'password'
+            MYSQL_ALLOW_EMPTY_PASSWORD: 1
+        volumes:
+            - 'mysql-order-manager-data:/var/lib/mysql'
+            - './vendor/laravel/sail/database/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
+        command: '--socket=/tmp/mysql.sock'
+        networks:
+            - order-manager
+        healthcheck:
+            test:
+                - CMD
+                - mysqladmin
+                - ping
+                - '-ppassword'
+            retries: 3
+            timeout: 5s
+    mysql_kitchen:
+        image: 'mysql/mysql-server:8.0'
+        ports:
+            - '3308:3306'
+        environment:
+            MYSQL_ROOT_PASSWORD: 'password'
+            MYSQL_ROOT_HOST: '%'
+            MYSQL_DATABASE: 'laravel'
+            MYSQL_USER: 'sail'
+            MYSQL_PASSWORD: 'password'
+            MYSQL_ALLOW_EMPTY_PASSWORD: 1
+        volumes:
+            - 'mysql-kitchen-data:/var/lib/mysql'
+            - './vendor/laravel/sail/database/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
+        command: '--socket=/tmp/mysql.sock'
+        networks:
+            - kitchen
+        healthcheck:
+            test:
+                - CMD
+                - mysqladmin
+                - ping
+                - '-ppassword'
+            retries: 3
+            timeout: 5s
+    mysql_store:
+        image: 'mysql/mysql-server:8.0'
+        ports:
+            - '3309:3306'
+        environment:
+            MYSQL_ROOT_PASSWORD: 'password'
+            MYSQL_ROOT_HOST: '%'
+            MYSQL_DATABASE: 'laravel'
+            MYSQL_USER: 'sail'
+            MYSQL_PASSWORD: 'password'
+            MYSQL_ALLOW_EMPTY_PASSWORD: 1
+        volumes:
+            - 'mysql-store-data:/var/lib/mysql'
+            - './vendor/laravel/sail/database/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
+        command: '--socket=/tmp/mysql.sock'
+        networks:
+            - store
+        healthcheck:
+            test:
+                - CMD
+                - mysqladmin
+                - ping
+                - '-ppassword'
+            retries: 3
+            timeout: 5s
+networks:
+    interface:
+        driver: bridge
+    order-manager:
+        driver: bridge
+    kitchen:
+        driver: bridge
+    store:
+        driver: bridge
+    alegra-services:
+        driver: bridge
+volumes:
+    mysql-interface-data:
+        driver: local
+    mysql-order-manager-data:
+        driver: local
+    mysql-kitchen-data:
+        driver: local
+    mysql-store-data:
+        driver: local
