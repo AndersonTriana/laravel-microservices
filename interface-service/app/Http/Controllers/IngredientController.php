@@ -9,7 +9,7 @@ class IngredientController extends Controller
 {
     public function index(int $page = 1)
     {
-        $response = Http::get("laravel.store/api/available-ingredients?page={$page}");
+        $response = Http::get("store/api/available-ingredients?page={$page}");
 
         if (!$response->successful()) {
             return back($response->getStatusCode())->withErrors(['error' => 'Hubo un problema al obtener los ingredientes, espera un momento e inténtalo de nuevo']);

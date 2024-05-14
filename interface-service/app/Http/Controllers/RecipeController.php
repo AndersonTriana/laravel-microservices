@@ -9,7 +9,7 @@ class RecipeController extends Controller
 {
     public function index(int $page = 1)
     {
-        $response = Http::get("laravel.kitchen/api/recipes?page={$page}");
+        $response = Http::get("kitchen/api/recipes?page={$page}");
 
         if (!$response->successful()) {
             return back($response->getStatusCode())->withErrors(['error' => 'Hubo un problema al obtener las recetas, espera un momento e inténtalo de nuevo']);

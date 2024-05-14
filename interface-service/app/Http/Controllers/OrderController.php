@@ -13,11 +13,11 @@ class OrderController extends Controller
         $url = '';
 
         if ($status == 'finished') {
-            $url = "laravel.order-manager/api/orders-finished?page={$page}";
+            $url = "order-manager/api/orders-finished?page={$page}";
         } else if ($status == 'preparing') {
-            $url = "laravel.order-manager/api/orders-preparing?page={$page}";
+            $url = "order-manager/api/orders-preparing?page={$page}";
         } else {
-            $url = "laravel.order-manager/api/orders?page={$page}";
+            $url = "order-manager/api/orders?page={$page}";
         }
 
         $response = Http::get($url);
@@ -33,7 +33,7 @@ class OrderController extends Controller
     {
         $orderQuantity = $request->all()['orderQuantity'];
         $response = Http::accept('application/json')->post(
-            'laravel.order-manager/api/create-order',
+            'order-manager/api/create-order',
             ['orderQuantity' => $orderQuantity]
         );
 
