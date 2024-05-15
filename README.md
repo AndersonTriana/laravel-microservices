@@ -19,7 +19,7 @@ This project is composed of **four main services**:
 To run the application, navigate to the `microservices` directory and execute the following command:
 
 ```sh
-docker compose up --build --scale orders-queue-create-orders=6
+docker compose up -d --scale orders-queue-create-orders=6
 ```
 
 The `--scale` parameter is optional and allows you to specify the number of replicas for a particular service. In the example above, the `orders-queue-create-orders` service is scaled to 6 replicas.
