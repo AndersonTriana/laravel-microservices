@@ -1,8 +1,7 @@
 services:
     interface:
-        build:
-            context: ./interface-service
-            dockerfile: Dockerfile
+        build: ./interface-service
+        image: interface-service
         ports:
             - '8001:80'
             - '5173:5173'
@@ -14,9 +13,8 @@ services:
         depends_on:
             - mysql_interface
     order-manager:
-        build:
-            context: ./order-management-service
-            dockerfile: Dockerfile
+        build: ./order-management-service
+        image: order-management-service
         ports:
             - '8002:80'
             - '5174:5173'
@@ -28,9 +26,8 @@ services:
         depends_on:
             - mysql_order_manager
     kitchen:
-        build:
-            context: ./kitchen-service
-            dockerfile: Dockerfile
+        build: ./kitchen-service
+        image: kitchen-service
         ports:
             - '8003:80'
             - '5175:5173'
@@ -42,9 +39,8 @@ services:
         depends_on:
             - mysql_kitchen
     store:
-        build:
-            context: ./store-service
-            dockerfile: Dockerfile
+        build: ./store-service
+        image: store-service
         ports:
             - '8004:80'
             - '5176:5173'
@@ -118,6 +114,83 @@ services:
             - 'mysql-store-data:/var/lib/mysql'
         command: '--socket=/tmp/mysql.sock'
         networks:
+            - store
+    orders-queue-create-orders:
+        image: order-management-service
+        command: php /var/www/html/artisan queue:work --queue=CreateOrders --sleep=10 --tries=3
+        restart: always
+        volumes:
+            - './order-management-service:/var/www/html'
+        networks:
+            - order-manager
+        depends_on:
+            - mysql_order_manager
+            - order-manager
+    orders-queue-process-finished-orders:
+        image: order-management-service
+        command: php /var/www/html/artisan rabbitmq:consume-finished
+        restart: on-failure:3
+        volumes:
+            - './order-management-service:/var/www/html'
+        networks:
+            - order-manager
+        depends_on:
+            - mysql_order_manager
+            - order-manager
+    kitchen-queue-create-plate-orders:
+        image: kitchen-service
+        command: php /var/www/html/artisan rabbitmq:consume
+        restart: on-failure:3
+        volumes:
+            - './kitchen-service:/var/www/html'
+        networks:
+            - kitchen
+        depends_on:
+            - mysql_kitchen
+            - kitchen
+    kitchen-queue-finished-ingredient-orders:
+        image: kitchen-service
+        command: php /var/www/html/artisan rabbitmq:consume-finished
+        restart: on-failure:3
+        volumes:
+            - './kitchen-service:/var/www/html'
+        networks:
+            - kitchen
+        depends_on:
+            - mysql_kitchen
+            - kitchen
+    store-process-ingredient-orders:
+        image: store-service
+        command: php /var/www/html/artisan queue:work --queue=ProcessIngredientOrders --sleep=10 --tries=3
+        restart: always
+        volumes:
+            - './store-service:/var/www/html'
+        networks:
+            - store
+        depends_on:
+            - mysql_store
+            - store
+    store-queue-create-ingredient-orders:
+        image: store-service
+        command: php /var/www/html/artisan rabbitmq:consume
+        restart: on-failure:3
+        volumes:
+            - './store-service:/var/www/html'
+        networks:
+            - store
+        depends_on:
+            - mysql_store
+            - store
+    store-schedule:
+        image: store-service
+        command: php /var/www/html/artisan schedule:work
+        restart: on-failure:3
+        volumes:
+            - './store-service:/var/www/html'
+        networks:
+            - store
+        depends_on:
+            - mysql_store
             - store
 networks:
     interface:
