@@ -1,6 +1,4 @@
-# Alegra Challenge - Microservices Application
-
-This application is part of the Alegra Challenge.
+# Laravel Microservices Application
 
 ## Requirements
 - Ensure **Docker** and **Docker Compose** are installed on your machine.
